@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# uv
+.uv/
+
+# Node
+node_modules/
+npm-debug.log*
+frontend/node_modules/
+
+# Build outputs — frontend/dist IS committed (deployed artifact, versioned with source)
+frontend/tsconfig.tsbuildinfo
+
+# Generated mock data (regenerable via scripts/generate_mock_data.py)
+data_out/
+
+# Databricks
+.databricks/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Local Claude Code settings (machine-specific)
+.claude/

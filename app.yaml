@@ -1,0 +1,30 @@
+command:
+  - "python"
+  - "-m"
+  - "uvicorn"
+  - "app:app"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+env:
+  # Data plane — the app queries the GOLD schema only.
+  - name: VP_CATALOG
+    value: "elexon_app_for_settlement_acc_catalog"
+  - name: VP_GOLD_SCHEMA
+    value: "vitality_pulse_gold"
+  # SQL warehouse the app runs queries and Genie on. Also declared as an app
+  # resource in the UI (Compute > Apps > vitality-pulse > Edit > Add resource >
+  # SQL warehouse) so the service principal gets "Can use".
+  - name: VP_WAREHOUSE_ID
+    value: "dcb1c3dd8d1570d6"
+  # One Genie space per module (created via manage_genie).
+  - name: GENIE_SPACE_HEALTH
+    value: "01f18f07dc141af0a148d8148f6c788f"
+  - name: GENIE_SPACE_FINANCE
+    value: "01f18f07e5a515619f6a75c44d1bdaa6"
+  - name: GENIE_SPACE_BRIDGE
+    value: "01f18f07efb31f9eb93fc2a7737d773d"
+  - name: VP_GENIE_TIMEOUT_S
+    value: "30"

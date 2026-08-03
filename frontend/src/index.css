@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #101828;
+  --surface: #f7f8fa;
+  --card: #ffffff;
+  --line: #e4e7ec;
+  --deep-teal: #0b5563;
+  --amber: #e8a33d;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Refined, unobtrusive scrollbars (professional feel) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d3d9e0;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #b3bcc7;
+  background-clip: content-box;
+}
+
+/* Tabular numerals for all stat values */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card mount stagger (PRD §5.2) — 200ms translate-y + opacity */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.card-in {
+  animation: cardIn 200ms ease-out both;
+}
+
+/* Route fade (150ms) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.route-fade {
+  animation: fadeIn 150ms ease-out both;
+}
+
+/* Genie insight shimmer skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, #eef1f4 25%, #e2e7ec 50%, #eef1f4 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+/* Respect reduced motion — disable all of the above (PRD §5.2) */
+@media (prefers-reduced-motion: reduce) {
+  .card-in,
+  .route-fade,
+  .shimmer {
+    animation: none;
+  }
+}
