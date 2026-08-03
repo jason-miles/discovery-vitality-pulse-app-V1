@@ -1,0 +1,1 @@
+function f(n){const r=typeof n=="number"?n:parseFloat(String(n));return Number.isNaN(r)?0:r}function u(n){return n==null?"":String(n)}function p(n,r,i,c){const t=new Map,o=new Set;for(const e of n){const s=u(e[r]),a=u(e[i]);o.add(a),t.has(s)||t.set(s,{[r]:s}),t.get(s)[a]=f(e[c])}return{data:Array.from(t.values()),series:Array.from(o)}}export{f as n,p,u as s};

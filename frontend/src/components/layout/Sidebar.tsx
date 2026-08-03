@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Activity, Wallet, GitMerge, PanelLeftClose, PanelLeft, Sparkles, Network, Briefcase, Sunrise } from "lucide-react";
+import { Activity, Wallet, GitMerge, PanelLeftClose, PanelLeft, Sparkles, Network, Briefcase, Sunrise, Bot } from "lucide-react";
 import clsx from "clsx";
 import { useState } from "react";
 import { VitalityLockup } from "./Logo";
@@ -10,7 +10,7 @@ const NAV = [
   { to: "/bridge", label: "The Bridge", icon: GitMerge },
 ];
 
-const GENIE_NAV = { to: "/genie", label: "Ask Genie", icon: Sparkles };
+const GENIE_NAV = { to: "/genie", label: "Ask the Pulse Assistant", icon: Sparkles };
 
 export function Sidebar({ freshness }: { freshness?: string }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -94,8 +94,22 @@ export function Sidebar({ freshness }: { freshness?: string }) {
             {!collapsed && <span>Architecture</span>}
           </NavLink>
 
-          {/* Separator, then Ask Genie pinned at the bottom of the nav */}
-          <div className="!mt-3 border-t border-line pt-3">
+          {/* Separator, then the two AI experiences pinned at the bottom */}
+          <div className="!mt-3 space-y-1 border-t border-line pt-3">
+            <NavLink
+              to="/assistant"
+              className={({ isActive }) =>
+                clsx(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40",
+                  isActive ? "bg-deep-teal text-white" : "text-ink/70 hover:bg-surface hover:text-ink",
+                )
+              }
+              title={collapsed ? "Pulse Assistant" : undefined}
+            >
+              <Bot className="h-5 w-5 shrink-0 text-amber" />
+              {!collapsed && <span>Pulse Assistant</span>}
+            </NavLink>
+
             <NavLink
               to={GENIE_NAV.to}
               className={({ isActive }) =>

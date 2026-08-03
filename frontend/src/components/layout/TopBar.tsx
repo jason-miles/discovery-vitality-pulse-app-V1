@@ -23,7 +23,7 @@ export function TopBar({ title, subtitle, showTiers = true, showFilters = true, 
             className="flex shrink-0 items-center gap-2 rounded-lg bg-deep-teal px-4 py-2 text-sm font-medium text-white shadow-card transition hover:bg-deep-teal/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40"
           >
             <Sparkles className="h-4 w-4 text-amber" />
-            Ask Genie
+            Ask the Pulse Assistant
           </button>
         </div>
         {showFilters && (

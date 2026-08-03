@@ -30,3 +30,6 @@ data_out/
 
 # Local Claude Code settings (machine-specific)
 .claude/
+
+# Isaac local config
+.isaac/

@@ -261,7 +261,7 @@ export function MorningBriefPage({ onAsk }: { onAsk?: () => void }) {
         {onAsk && (
           <button onClick={onAsk}
             className="flex shrink-0 items-center gap-1.5 rounded-lg bg-deep-teal px-3 py-1.5 text-sm font-medium text-white hover:bg-deep-teal/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40">
-            <Sparkles className="h-4 w-4 text-amber" /> Ask Genie
+            <Sparkles className="h-4 w-4 text-amber" /> Ask the Pulse Assistant
           </button>
         )}
       </div>

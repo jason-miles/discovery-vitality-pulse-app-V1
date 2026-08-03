@@ -90,12 +90,12 @@ export function GenieDrawer({
           open ? "translate-x-0" : "translate-x-full",
         )}
         role="dialog"
-        aria-label="Ask Genie"
+        aria-label="Ask the Pulse Assistant"
       >
         <div className="flex h-16 items-center justify-between border-b border-line px-5">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber" />
-            <span className="font-display font-semibold text-ink">Ask Genie</span>
+            <span className="font-display font-semibold text-ink">Ask the Pulse Assistant</span>
             <span className="rounded bg-genie-bg px-2 py-0.5 text-xs text-deep-teal">{space?.title ?? module}</span>
           </div>
           <button onClick={onClose} className="rounded p-1 text-ink/50 hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-deep-teal/40" aria-label="Close">

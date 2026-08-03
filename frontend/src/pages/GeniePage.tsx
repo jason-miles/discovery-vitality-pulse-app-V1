@@ -24,12 +24,12 @@ export function GeniePage({ onAsk }: { onAsk: (module: Module, question?: string
       <div className="card-in rounded-xl border border-line bg-white p-6 shadow-card">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-amber" />
-          <h2 className="font-display text-lg font-semibold text-ink">Ask Genie</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">Ask the Pulse Assistant</h2>
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink/70">
           Genie lets you ask questions of Vitality Pulse data in plain English — no SQL, no analyst
           ticket. Each module has its own governed Genie space, curated to that module's gold tables
-          and briefed on its metrics. Pick a space below, or use the <b>Ask Genie</b> button on any
+          and briefed on its metrics. Pick a space below, or use the <b>Ask the Pulse Assistant</b> button on any
           module. Every answer is grounded in the same governed data as the dashboards.
         </p>
       </div>

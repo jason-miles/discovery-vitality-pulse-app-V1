@@ -15,6 +15,7 @@ const BridgePage = lazy(() => import("./pages/BridgePage").then((m) => ({ defaul
 const GeniePage = lazy(() => import("./pages/GeniePage").then((m) => ({ default: m.GeniePage })));
 const ArchitecturePage = lazy(() => import("./pages/ArchitecturePage").then((m) => ({ default: m.ArchitecturePage })));
 const BusinessOverviewPage = lazy(() => import("./pages/BusinessOverviewPage").then((m) => ({ default: m.BusinessOverviewPage })));
+const PulseAssistantPage = lazy(() => import("./assistant/PulseAssistantPage").then((m) => ({ default: m.PulseAssistantPage })));
 
 interface ModuleMeta {
   module: Module;
@@ -50,7 +51,7 @@ const META: Record<string, ModuleMeta> = {
   },
   "/genie": {
     module: "bridge",
-    title: "Ask Genie",
+    title: "Ask the Pulse Assistant",
     subtitle: "Natural-language analytics across all three modules.",
     showTiers: false,
   },
@@ -66,6 +67,12 @@ const META: Record<string, ModuleMeta> = {
     subtitle: "The business context and value behind Vitality Pulse.",
     showTiers: false,
   },
+  "/assistant": {
+    module: "bridge",
+    title: "Pulse Assistant",
+    subtitle: "Conversational intelligence over the shared-value lakehouse.",
+    showTiers: false,
+  },
 };
 
 export default function App() {
@@ -73,7 +80,7 @@ export default function App() {
   const [genieOpen, setGenieOpen] = useState(false);
   const [genieModule, setGenieModule] = useState<Module>("health");
   const meta = META[location.pathname] ?? META["/health"];
-  const noFilters = ["/genie", "/architecture", "/business", "/brief"].includes(location.pathname);
+  const noFilters = ["/genie", "/architecture", "/business", "/brief", "/assistant"].includes(location.pathname);
 
   // Open the drawer for a specific module (used by the hub cards + top bar).
   // A preset question is seeded via sessionStorage for the drawer to pick up.
@@ -109,6 +116,7 @@ export default function App() {
               <Route path="/genie" element={<GeniePage onAsk={openGenie} />} />
               <Route path="/architecture" element={<ArchitecturePage />} />
               <Route path="/business" element={<BusinessOverviewPage />} />
+              <Route path="/assistant" element={<PulseAssistantPage />} />
               <Route path="*" element={<Navigate to="/brief" replace />} />
             </Routes>
             </Suspense>
