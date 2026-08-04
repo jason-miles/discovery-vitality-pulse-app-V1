@@ -1,6 +1,7 @@
 import {
   Check, Activity, GitMerge, Wallet, MessageSquareText, ShieldCheck, Users,
 } from "lucide-react";
+import { HeroStat } from "../components/cards/HeroStat";
 
 function Capability({ icon: Icon, title, body }: { icon: typeof Activity; title: string; body: string }) {
   return (
@@ -33,17 +34,10 @@ export function BusinessOverviewPage() {
           teams one shared evidence base instead of three data silos.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[
-            { n: "50 000", l: "Members analysed" },
-            { n: "3", l: "Teams, one P&L" },
-            { n: "24 mo", l: "Behaviour → claims history" },
-            { n: "~36%", l: "Lower claims, top tier" },
-          ].map((s) => (
-            <div key={s.l} className="rounded-xl border border-white/15 bg-white/5 px-4 py-4">
-              <div className="font-display text-3xl font-bold tnum">{s.n}</div>
-              <div className="mt-1 text-[11px] leading-tight text-white/60">{s.l}</div>
-            </div>
-          ))}
+          <HeroStat value={50000} space label="Members analysed" />
+          <HeroStat value={3} label="Teams, one P&L" />
+          <HeroStat value={24} suffix=" mo" label="Behaviour → claims history" />
+          <HeroStat value={36} prefix="~" suffix="%" label="Lower claims, top tier" />
         </div>
       </div>
 

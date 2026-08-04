@@ -34,16 +34,19 @@ function EmptyState() {
   const { send } = useChatStream();
   return (
     <div className="mx-auto max-w-3xl px-2 py-8">
-      <div className="mb-1 flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-deep-teal"><Sparkles className="h-5 w-5 text-amber" /></div>
-        <h2 className="font-display text-xl font-semibold text-ink">Pulse Assistant</h2>
+      {/* Branded hero */}
+      <div className="hero-pattern card-in mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal via-[#00466f] to-[#012740] p-7 text-white shadow-card">
+        <div className="mb-2 flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10"><Sparkles className="h-5 w-5 text-amber" /></div>
+          <h2 className="font-display text-2xl font-bold">Pulse Assistant</h2>
+        </div>
+        <p className="max-w-2xl text-sm leading-relaxed text-white/70">
+          One conversation over the shared-value lakehouse. Ask for <b className="text-white">analytics</b> (governed
+          NL→SQL with charts), look up <b className="text-white">policy &amp; contract documents</b> with citations, or
+          trigger a governed <b className="text-white">workflow</b> you confirm before it runs. Every analytics answer
+          is grounded in the same gold tables as the dashboards.
+        </p>
       </div>
-      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-ink/60">
-        One conversation over the shared-value lakehouse. Ask for <b>analytics</b> (governed NL→SQL with
-        charts), look up <b>policy &amp; contract documents</b> with citations, or trigger a governed
-        <b> workflow</b> you confirm before it runs. Every analytics answer is grounded in the same gold
-        tables as the dashboards.
-      </p>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {EXAMPLES.map(({ icon: Icon, tint, label, prompts }) => (
           <div key={label} className="rounded-xl border border-line bg-white p-4 shadow-card">

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { CloudTopology, CLOUDS } from "../components/architecture/CloudTopology";
+import { HeroStat } from "../components/cards/HeroStat";
 
 // ── Small building blocks ────────────────────────────────────────────────
 function Node({ icon: Icon, title, sub, accent = false }: {
@@ -82,16 +83,9 @@ export function ArchitecturePage() {
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {[
-              { n: "3", l: "Medallion layers" },
-              { n: "1", l: "Governance plane (UC)" },
-              { n: "0", l: "Data copies to share" },
-            ].map((s) => (
-              <div key={s.l} className="rounded-xl border border-white/15 bg-white/5 px-5 py-4 text-center">
-                <div className="font-display text-4xl font-bold tnum">{s.n}</div>
-                <div className="mt-1 text-[11px] leading-tight text-white/60">{s.l}</div>
-              </div>
-            ))}
+            <HeroStat value={3} label="Medallion layers" />
+            <HeroStat value={1} label="Governance plane (UC)" />
+            <HeroStat value={0} label="Data copies to share" />
           </div>
         </div>
       </div>
