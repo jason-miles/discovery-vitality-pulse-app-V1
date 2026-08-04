@@ -50,7 +50,7 @@ const SERVING = [
 function GreenArrow({ label }: { label?: string }) {
   return (
     <div className="flex shrink-0 flex-col items-center justify-center px-1">
-      <ArrowRight className="h-4 w-4 text-[#227C57]" />
+      <ArrowRight className="h-4 w-4 text-flow" />
       {label && <span className="mt-0.5 max-w-[72px] text-center text-[10px] leading-tight text-ink/45">{label}</span>}
     </div>
   );
@@ -58,7 +58,7 @@ function GreenArrow({ label }: { label?: string }) {
 
 function DeltaBox({ tier, layer, storage }: { tier: string; layer: string; storage: string }) {
   return (
-    <div className="min-w-[128px] flex-1 rounded-lg border-2 border-[#4E9BAA]/50 bg-white px-3 py-2.5 text-center">
+    <div className="min-w-[128px] flex-1 rounded-lg border-2 border-delta-edge/50 bg-white px-3 py-2.5 text-center">
       <div className="text-sm font-bold text-ink">{tier}</div>
       <div className="text-[11px] text-ink/45">({layer})</div>
       <div className="mt-1 text-[11px] font-bold uppercase tracking-wide text-deep-teal">Delta Lake</div>
@@ -138,7 +138,7 @@ export function CloudTopology({ cloud }: { cloud: CloudSpec }) {
 
           {/* gold → serving */}
           <div className="flex flex-col items-center">
-            <ArrowDown className="h-4 w-4 text-[#227C57]" />
+            <ArrowDown className="h-4 w-4 text-flow" />
             <span className="text-[10px] leading-none text-ink/45">gold-only reads</span>
           </div>
           <div className="rounded-lg border border-dashed border-line p-3">

@@ -46,8 +46,8 @@ function Edge({ label }: { label: string }) {
   return (
     <div className="flex shrink-0 items-center justify-center xl:flex-col xl:self-center xl:px-1">
       {/* horizontal on wide screens, vertical when the flow stacks */}
-      <ArrowRight className="hidden h-5 w-5 text-[#227C57] xl:block" />
-      <ArrowDown className="h-5 w-5 text-[#227C57] xl:hidden" />
+      <ArrowRight className="hidden h-5 w-5 text-flow xl:block" />
+      <ArrowDown className="h-5 w-5 text-flow xl:hidden" />
       <span className="mt-1 max-w-[84px] text-center text-[10px] font-medium leading-tight text-ink/45">{label}</span>
     </div>
   );
@@ -74,7 +74,7 @@ function Pillar({ icon: Icon, title, body }: { icon: typeof HeartPulse; title: s
 function SectionHead({ kicker, title, blurb }: { kicker: string; title: string; blurb: string }) {
   return (
     <div className="mb-4">
-      <div className="mb-1 text-[11px] font-bold uppercase tracking-widest text-[#227C57]">{kicker}</div>
+      <div className="mb-1 text-[11px] font-bold uppercase tracking-widest text-flow">{kicker}</div>
       <h2 className="font-display text-xl font-semibold text-ink">{title}</h2>
       <p className="mt-1 max-w-3xl text-sm leading-relaxed text-ink/60">{blurb}</p>
     </div>
@@ -146,7 +146,7 @@ function ServingLane({ icon: Icon, endpoint, sdk, primitive, primitiveSub, retur
     <div className="rounded-lg border border-line bg-white p-3 shadow-card">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <code className="shrink-0 rounded bg-ink/[0.04] px-2 py-1 text-[11px] font-semibold text-deep-teal sm:w-52">{endpoint}</code>
-        <ArrowRight className="hidden h-4 w-4 shrink-0 text-[#227C57] sm:block" />
+        <ArrowRight className="hidden h-4 w-4 shrink-0 text-flow sm:block" />
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-genie-bg">
             <Icon className="h-4 w-4 text-deep-teal" />
@@ -156,7 +156,7 @@ function ServingLane({ icon: Icon, endpoint, sdk, primitive, primitiveSub, retur
             <div className="text-xs leading-tight text-ink/50">{primitiveSub}</div>
           </div>
         </div>
-        <ArrowRight className="hidden h-4 w-4 shrink-0 text-[#227C57] sm:block" />
+        <ArrowRight className="hidden h-4 w-4 shrink-0 text-flow sm:block" />
         <div className="shrink-0 sm:w-48">
           <div className="text-xs font-medium text-ink/70">{returns}</div>
           {note && <div className="text-[11px] text-ink/40">{note}</div>}
@@ -223,7 +223,7 @@ export function ArchitecturePage() {
         <div className="card-in rounded-xl border border-line bg-white p-6 shadow-card">
           <div className="flex flex-col gap-4 xl:flex-row">
             <Column title="Data Sources" tag="raw">
-              <GroupLabel color="text-[#227C57]">Structured</GroupLabel>
+              <GroupLabel color="text-flow">Structured</GroupLabel>
               <Node icon={HeartPulse} title="Device telemetry" sub="Garmin · Apple · Fitbit reads" />
               <Node icon={Dumbbell} title="Gym check-ins" sub="partner turnstile feeds" />
               <Node icon={Gift} title="Reward events" sub="partner POS / redemptions" />
@@ -305,7 +305,7 @@ export function ArchitecturePage() {
 
           {/* Fan-out label + how-to-read notation */}
           <div className="my-3 flex flex-col items-center">
-            <ArrowDown className="h-5 w-5 text-[#227C57]" />
+            <ArrowDown className="h-5 w-5 text-flow" />
             <span className="text-[11px] font-medium text-ink/45">fans out to four serving primitives — all read gold</span>
             <span className="mt-1 text-[10px] text-ink/35">
               each lane: <code className="text-deep-teal">/api endpoint</code> → primitive → response · with the exact <code className="text-ink/50">databricks-sdk</code> call
@@ -342,7 +342,7 @@ export function ArchitecturePage() {
 
           {/* Where it lands in the app */}
           <div className="mt-3 flex flex-col items-center">
-            <ArrowDown className="h-5 w-5 text-[#227C57]" />
+            <ArrowDown className="h-5 w-5 text-flow" />
             <span className="text-[11px] font-medium text-ink/45">rendered across the three modules + assistant</span>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-4">

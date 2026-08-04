@@ -18,6 +18,8 @@ export default {
         "teal-mid": "#0E7BA8", // mid Discovery blue
         violet: "#8A6FB8",
         alert: "#C0564F",
+        flow: "#227C57", // data-flow arrows / edges in the architecture diagrams
+        "delta-edge": "#4E9BAA", // Delta Lake medallion-box border in topology diagrams
         // AI insight / assistant panel — soft Vitality-pink tint
         "genie-bg": "#FDEFF6",
       },
