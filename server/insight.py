@@ -59,14 +59,23 @@ def _ask_genie(module: str, prompt: str) -> str | None:
 
 def generate_insight(module: str, prompt: str, fallback: str | None) -> dict[str, Any]:
     """Return a structured insight, degrading to the computed fallback on any
-    Genie failure/timeout. Never raises to the caller."""
-    try:
-        text = _ask_genie(module, prompt)
-        if text:
-            return {"text": text, "source": "genie",
-                    "generated_at": _now(), "cached": False}
-    except Exception:  # noqa: BLE001 — Genie must never break a card
-        pass
+    Genie failure/timeout. Successful Genie answers are cached (TTL) so repeat
+    views are instant; fallbacks are never cached so they retry Genie. Never
+    raises to the caller."""
+    from .cache import get_or_set
+
+    def produce() -> dict[str, Any] | None:
+        try:
+            text = _ask_genie(module, prompt)
+            if text:
+                return {"text": text, "source": "genie", "generated_at": _now(), "cached": False}
+        except Exception:  # noqa: BLE001 — Genie must never break a card
+            pass
+        return None
+
+    cached = get_or_set(["insight", module, prompt], produce)
+    if cached:
+        return cached
 
     if fallback:
         return {"text": fallback, "source": "computed",

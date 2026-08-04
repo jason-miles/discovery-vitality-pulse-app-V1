@@ -132,6 +132,21 @@ def _zar(v) -> str:
 
 
 def exec_narrative() -> dict[str, Any]:
+    """Cached wrapper: serve a prior Genie narrative instantly for the TTL
+    window; only re-hit Genie once it expires or if the last result was a
+    fallback."""
+    from .cache import get_or_set
+
+    def produce() -> dict[str, Any] | None:
+        r = _exec_narrative_impl()
+        # Only cache the real Genie narrative; let fallbacks retry next time.
+        return r if r.get("source") == "genie" else None
+
+    cached = get_or_set(["exec_narrative"], produce)
+    return cached if cached else _exec_narrative_impl()
+
+
+def _exec_narrative_impl() -> dict[str, Any]:
     """Generate a 3-sentence executive morning narrative from the live KPI +
     concerns data. Asks Genie to narrate the numbers; falls back to a computed
     sentence built from the actual figures so it is never empty."""
@@ -199,6 +214,19 @@ VS_INDEX = "elexon_app_for_settlement_acc_catalog.vitality_pulse_gold.policy_doc
 
 
 def rag_answer(question: str) -> dict[str, Any]:
+    """Cached wrapper around the real RAG lookup — repeat questions return
+    instantly for the TTL window; only successful answers are cached."""
+    from .cache import get_or_set
+
+    def produce() -> dict[str, Any] | None:
+        r = _rag_answer_impl(question)
+        return r if r.get("source") == "rag" and r.get("citations") else None
+
+    cached = get_or_set(["rag", question.strip().lower()], produce)
+    return cached if cached else _rag_answer_impl(question)
+
+
+def _rag_answer_impl(question: str) -> dict[str, Any]:
     """Answer a policy/contract/clinical question with real citations from the
     Vector Search index. Returns {markdown, citations:[{id,docTitle,docType,
     page,section,passage}], source}. Falls back to error text if VS is down."""

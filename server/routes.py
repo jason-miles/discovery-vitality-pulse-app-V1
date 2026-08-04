@@ -44,18 +44,28 @@ def healthcheck() -> dict[str, str]:
 
 @router.post("/warmup")
 def warmup() -> dict[str, Any]:
-    """Fire a trivial query to resume the serverless warehouse so the first real
-    query on a page doesn't pay the cold-start penalty. Called once on app load.
-    Never raises — a failed warm-up just means the first query is cold."""
+    """Resume the serverless warehouse AND pre-warm the exec narrative cache in a
+    background thread, so the first person to open the Brief during a demo sees
+    the AI narrative instantly. Called once on app load. Never raises."""
+    warm = False
     try:
         from .config import WAREHOUSE_ID, get_workspace_client
         w = get_workspace_client()
         w.statement_execution.execute_statement(
             warehouse_id=WAREHOUSE_ID, statement="SELECT 1", wait_timeout="30s",
         )
-        return {"warm": True}
+        warm = True
     except Exception:  # noqa: BLE001
-        return {"warm": False}
+        pass
+
+    # Pre-warm the exec narrative off-thread (don't block the response).
+    try:
+        import threading
+        threading.Thread(target=genie_svc.exec_narrative, daemon=True).start()
+    except Exception:  # noqa: BLE001
+        pass
+
+    return {"warm": warm}
 
 
 @router.post("/query/{sql_key}")
