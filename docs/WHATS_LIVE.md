@@ -56,7 +56,7 @@ Route-level code splitting · serverless-warehouse warm-up on load · **server-s
 
 ## Redeploy
 ```bash
-cd reporting-tool-app/frontend && npm run build && cd ..
+cd vitality-pulse-rewards-programme-app/frontend && npm run build && cd ..
 databricks sync . /Workspace/Users/jason.miles@databricks.com/vitality-pulse-src \
   --exclude node_modules --exclude .venv --exclude data_out --exclude frontend/node_modules \
   --exclude frontend/src --exclude frontend/public --exclude __pycache__ --exclude .git --full -p elexon
