@@ -39,7 +39,41 @@ class GenieAskRequest(BaseModel):
 
 @router.get("/health")
 def healthcheck() -> dict[str, str]:
+    """Liveness probe — cheap, always fast (no external calls)."""
     return {"status": "ok"}
+
+
+@router.get("/version")
+def version() -> dict[str, Any]:
+    """Build/config info for support & ops. No secrets."""
+    import os
+    from .config import CATALOG, GOLD_SCHEMA, WAREHOUSE_ID, IS_DATABRICKS_APP, GENIE_SPACE
+    return {
+        "app": "vitality-pulse",
+        "environment": "databricks-app" if IS_DATABRICKS_APP else "local",
+        "catalog": CATALOG,
+        "gold_schema": GOLD_SCHEMA,
+        "warehouse_id": WAREHOUSE_ID,
+        "genie_spaces_configured": sum(1 for v in GENIE_SPACE.values() if v),
+        "commit": os.environ.get("VP_GIT_SHA", "dev"),
+    }
+
+
+@router.get("/ready")
+def readiness() -> dict[str, Any]:
+    """Readiness probe — confirms the warehouse is actually reachable. Used by
+    ops/monitoring; returns 200 with {ready: bool} either way (never raises)."""
+    try:
+        from .config import WAREHOUSE_ID, get_workspace_client
+        from databricks.sdk.service.sql import StatementState
+        w = get_workspace_client()
+        r = w.statement_execution.execute_statement(
+            warehouse_id=WAREHOUSE_ID, statement="SELECT 1", wait_timeout="10s",
+        )
+        ok = bool(r.status and r.status.state == StatementState.SUCCEEDED)
+        return {"ready": ok, "warehouse": "reachable" if ok else "starting"}
+    except Exception as e:  # noqa: BLE001
+        return {"ready": False, "warehouse": "unreachable", "detail": str(e)[:120]}
 
 
 @router.post("/warmup")

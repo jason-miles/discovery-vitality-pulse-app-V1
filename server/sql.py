@@ -87,10 +87,17 @@ def run_query(sql_key: str, filters: dict[str, Any]) -> dict[str, Any]:
         statement=statement,
         parameters=params,
         wait_timeout="30s",
+        # Enterprise guardrails: cap result size so a mis-scoped query can never
+        # return a runaway payload to the app (gold tables are pre-aggregated,
+        # so 5k rows / 25 MB is generous headroom).
+        row_limit=5000,
+        byte_limit=25_000_000,
     )
-    # A 30s wait_timeout returns terminal or PENDING/RUNNING; poll if needed.
+    # A 30s wait_timeout returns terminal or PENDING/RUNNING; poll (bounded) if needed.
     import time
-    while resp.status and resp.status.state in (StatementState.PENDING, StatementState.RUNNING):
+    for _ in range(60):  # hard ceiling ~60s to avoid an unbounded poll loop
+        if not resp.status or resp.status.state not in (StatementState.PENDING, StatementState.RUNNING):
+            break
         time.sleep(1)
         resp = w.statement_execution.get_statement(resp.statement_id)
 

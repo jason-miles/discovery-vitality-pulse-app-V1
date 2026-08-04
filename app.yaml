@@ -28,3 +28,6 @@ env:
     value: "01f18f07efb31f9eb93fc2a7737d773d"
   - name: VP_GENIE_TIMEOUT_S
     value: "30"
+  # Log level for the structured request/error logs surfaced in /logz.
+  - name: VP_LOG_LEVEL
+    value: "INFO"
