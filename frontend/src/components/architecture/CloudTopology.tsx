@@ -1,53 +1,64 @@
 import type { ReactNode } from "react";
-import { ArrowRight, Database } from "lucide-react";
+import { ArrowRight, ArrowDown, Database, Lock } from "lucide-react";
 
-// A per-cloud Databricks reference topology, following the canonical
-// "databricks + <cloud>" reference-architecture layout:
-//   source sidebar → ML lane (Notebooks → MLflow → cloud ML)
-//                   → Data Engineering lane (Bronze→Silver→Gold Delta)
-//                   → streaming ingestion box
-//   + right "Databricks SQL & Apps" panel with *this app* highlighted.
+// A per-cloud Databricks reference topology that traces *this app's* real data
+// flow (not a generic platform poster):
+//
+//   batch + streaming sources
+//        │  land in the cloud object store
+//        ▼
+//   Bronze ──Spark ETL──▶ Silver ──aggregate──▶ Gold      (Delta, medallion)
+//        │                                        │
+//        └──────── Unity Catalog governs all ─────┘
+//                                                 │ gold-only SELECT
+//                                                 ▼
+//   Serving primitives the app calls: SQL Warehouse · Genie · Vector Search · Jobs
+//        │
+//        ▼
+//   This app — a Databricks App (FastAPI + React) reading gold only
+//
+// Only the object store and streaming service differ per cloud; the medallion,
+// governance model, serving primitives and app stay identical.
 
 export interface CloudSpec {
   name: string;
   accent: string;        // brand accent for the "+ <cloud>" wordmark
-  storage: string;       // object store label under each Delta box
-  mlInference: string;   // the real-time inference target
+  storage: string;       // object store the Delta tables live on
   streaming: string;     // streaming ingestion service
   biTools: string;       // BI ecosystem footnote
 }
 
 export const CLOUDS: CloudSpec[] = [
-  { name: "AWS", accent: "#E8A33D", storage: "Amazon S3", mlInference: "AWS ECS / SageMaker", streaming: "Amazon Kinesis", biTools: "Tableau · AI/BI · Looker" },
-  { name: "Azure", accent: "#3B82C4", storage: "ADLS Gen2", mlInference: "Azure ML", streaming: "Event Hubs", biTools: "Tableau · Power BI · AI/BI" },
-  { name: "GCP", accent: "#5B9BD5", storage: "GCS", mlInference: "Vertex AI", streaming: "Pub/Sub", biTools: "Looker · Tableau · AI/BI" },
+  { name: "AWS", accent: "#E8A33D", storage: "Amazon S3", streaming: "Amazon Kinesis", biTools: "Tableau · AI/BI · Looker" },
+  { name: "Azure", accent: "#3B82C4", storage: "ADLS Gen2", streaming: "Event Hubs", biTools: "Tableau · Power BI · AI/BI" },
+  { name: "GCP", accent: "#5B9BD5", storage: "GCS", streaming: "Pub/Sub", biTools: "Looker · Tableau · AI/BI" },
 ];
 
 const BATCH_SOURCES = ["Settlement / claims", "Policy & premium book", "Member & partner registry"];
 const STREAM_SOURCES = ["Half-hourly device reads", "Gym / IoT check-ins", "Reward & POS events"];
 
-function Box({ children, active = false, dashed = false }: { children: ReactNode; active?: boolean; dashed?: boolean }) {
-  return (
-    <div className={`rounded-lg px-4 py-2.5 text-center ${
-      dashed ? "border border-dashed" : "border"
-    } ${active ? "border-deep-teal bg-genie-bg" : "border-line bg-white"}`}>
-      {children}
-    </div>
-  );
-}
+// The four serving primitives *this app* actually calls (server/*.py), each
+// reading the gold schema only. Shown as the fan-out from Gold, annotated with
+// the concrete databricks-sdk surface so an SA can trace it to code.
+const SERVING = [
+  { name: "Serverless SQL", sub: "charts", api: "statement_execution" },
+  { name: "AI/BI Genie", sub: "3 spaces · NL→SQL", api: "genie" },
+  { name: "Vector Search", sub: "policy RAG · citations", api: "vector_search_indexes" },
+  { name: "Databricks Jobs", sub: "partner report → CSV", api: "jobs" },
+];
 
 function GreenArrow({ label }: { label?: string }) {
   return (
     <div className="flex shrink-0 flex-col items-center justify-center px-1">
       <ArrowRight className="h-4 w-4 text-[#227C57]" />
-      {label && <span className="mt-0.5 text-[10px] leading-none text-ink/40">{label}</span>}
+      {label && <span className="mt-0.5 max-w-[72px] text-center text-[10px] leading-tight text-ink/45">{label}</span>}
     </div>
   );
 }
 
 function DeltaBox({ tier, layer, storage }: { tier: string; layer: string; storage: string }) {
   return (
-    <div className="min-w-[120px] rounded-lg border-2 border-[#4E9BAA]/50 bg-white px-3 py-2.5 text-center">
+    <div className="min-w-[128px] flex-1 rounded-lg border-2 border-[#4E9BAA]/50 bg-white px-3 py-2.5 text-center">
       <div className="text-sm font-bold text-ink">{tier}</div>
       <div className="text-[11px] text-ink/45">({layer})</div>
       <div className="mt-1 text-[11px] font-bold uppercase tracking-wide text-deep-teal">Delta Lake</div>
@@ -56,74 +67,104 @@ function DeltaBox({ tier, layer, storage }: { tier: string; layer: string; stora
   );
 }
 
+function SourceLane({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div>
+      <div className="text-[11px] font-bold uppercase tracking-wide text-ink/35">{label}</div>
+      <div className="mt-1 space-y-0.5">
+        {items.map((s) => <div key={s} className="text-xs text-ink/65">{s}</div>)}
+      </div>
+    </div>
+  );
+}
+
+function ServingChip({ name, sub, api }: { name: string; sub: string; api: string }) {
+  return (
+    <div className="rounded-md border border-line bg-white px-3 py-2 text-center">
+      <div className="text-xs font-semibold text-ink">{name}</div>
+      <div className="text-[10px] leading-tight text-ink/45">{sub}</div>
+      <code className="mt-1 block border-t border-line/70 pt-1 text-[9px] leading-none text-deep-teal/70">w.{api}</code>
+    </div>
+  );
+}
+
+function Wordmark({ children }: { children: ReactNode }) {
+  return <span className="font-display text-xl font-bold text-ink">{children}</span>;
+}
+
 export function CloudTopology({ cloud }: { cloud: CloudSpec }) {
   return (
     <div className="rounded-xl border border-line bg-surface/60 p-5">
       {/* Wordmark */}
       <div className="mb-4 flex items-center gap-2">
         <Database className="h-5 w-5 text-ink" />
-        <span className="font-display text-xl font-bold text-ink">databricks</span>
+        <Wordmark>databricks</Wordmark>
         <span className="font-display text-xl font-bold" style={{ color: cloud.accent }}>+ {cloud.name}</span>
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row">
-        {/* Source sidebar */}
-        <div className="w-full shrink-0 lg:w-44">
-          <div className="text-[11px] font-bold uppercase tracking-wide text-ink/35">Batch</div>
-          <div className="mt-1 space-y-0.5">
-            {BATCH_SOURCES.map((s) => <div key={s} className="text-xs text-ink/65">{s}</div>)}
-          </div>
-          <div className="mt-3 text-[11px] font-bold uppercase tracking-wide text-ink/35">Streaming</div>
-          <div className="mt-1 space-y-0.5">
-            {STREAM_SOURCES.map((s) => <div key={s} className="text-xs text-ink/65">{s}</div>)}
-          </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+        {/* 1 · Sources → ingest */}
+        <div className="w-full shrink-0 lg:w-48">
+          <SourceLane label="Batch" items={BATCH_SOURCES} />
+          <div className="mt-3"><SourceLane label="Streaming" items={STREAM_SOURCES} /></div>
           <div className="mt-3 rounded-lg border border-violet/40 bg-violet/5 px-3 py-2 text-center">
             <div className="text-sm font-semibold text-violet">{cloud.streaming}</div>
-            <div className="text-[11px] text-ink/45">ingestion</div>
+            <div className="text-[11px] text-ink/45">ingestion → {cloud.storage}</div>
           </div>
         </div>
 
-        {/* Lanes */}
-        <div className="flex-1 space-y-3">
-          {/* ML lane */}
-          <div className="rounded-lg border border-dashed border-line p-3">
-            <div className="mb-2 text-[13px] font-semibold text-ink">Databricks Machine Learning</div>
-            <div className="flex flex-wrap items-stretch gap-2">
-              <Box><div className="text-sm font-semibold text-ink">Notebooks</div><div className="text-[11px] text-ink/45">ML Runtime</div></Box>
-              <GreenArrow />
-              <Box><div className="text-sm font-semibold text-ink">MLflow</div><div className="text-[11px] text-ink/45">Tracking</div></Box>
-              <GreenArrow />
-              <Box><div className="text-sm font-semibold text-ink">MLflow</div><div className="text-[11px] text-ink/45">Registry</div></Box>
-              <GreenArrow />
-              <Box active><div className="text-sm font-semibold text-ink">{cloud.mlInference}</div><div className="text-[11px] text-ink/45">real-time inference</div></Box>
-            </div>
-          </div>
+        <div className="hidden items-center lg:flex"><GreenArrow label="land raw" /></div>
 
-          {/* Data engineering lane */}
+        {/* 2 · Medallion + governance + serving fan-out */}
+        <div className="flex-1 space-y-3">
+          {/* Medallion lane */}
           <div className="rounded-lg border border-dashed border-line p-3">
-            <div className="mb-2 text-[13px] font-semibold text-ink">Databricks Data Engineering</div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="mb-2 text-[13px] font-semibold text-ink">Data Engineering — medallion on Delta</div>
+            <div className="flex flex-wrap items-center gap-1">
               <DeltaBox tier="Raw Data" layer="Bronze" storage={cloud.storage} />
               <GreenArrow label="Spark ETL" />
-              <DeltaBox tier="Refined Data" layer="Silver" storage={cloud.storage} />
-              <GreenArrow label="Spark ETL" />
-              <DeltaBox tier="Enriched Data" layer="Gold" storage={cloud.storage} />
+              <DeltaBox tier="Refined" layer="Silver" storage={cloud.storage} />
+              <GreenArrow label="aggregate" />
+              <DeltaBox tier="Enriched" layer="Gold" storage={cloud.storage} />
+            </div>
+          </div>
+
+          {/* Governance band spanning the whole lane */}
+          <div className="flex items-center gap-2 rounded-lg border border-deep-teal/25 bg-genie-bg/50 px-3 py-1.5">
+            <Lock className="h-3.5 w-3.5 shrink-0 text-deep-teal" />
+            <span className="text-[11px] font-medium text-ink/70">
+              Unity Catalog governs every layer — app service principal gets <b>SELECT on gold only</b>
+            </span>
+          </div>
+
+          {/* gold → serving */}
+          <div className="flex flex-col items-center">
+            <ArrowDown className="h-4 w-4 text-[#227C57]" />
+            <span className="text-[10px] leading-none text-ink/45">gold-only reads</span>
+          </div>
+          <div className="rounded-lg border border-dashed border-line p-3">
+            <div className="mb-2 text-[13px] font-semibold text-ink">Serving — the primitives this app calls</div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {SERVING.map((s) => <ServingChip key={s.name} name={s.name} sub={s.sub} api={s.api} />)}
             </div>
           </div>
         </div>
 
-        {/* Right SQL & Apps panel */}
-        <div className="w-full shrink-0 rounded-lg border border-line bg-white p-3 lg:w-52">
+        <div className="hidden items-center lg:flex"><GreenArrow label="HTTPS / SDK" /></div>
+
+        {/* 3 · The app */}
+        <div className="flex w-full shrink-0 flex-col rounded-lg border border-line bg-white p-3 lg:w-48">
           <div className="mb-2 text-[13px] font-semibold text-ink">Databricks SQL &amp; Apps</div>
-          <div className="space-y-1.5">
-            <div className="rounded-md bg-deep-teal px-3 py-2 text-center text-xs font-semibold text-white">
-              This app (Databricks App)
-            </div>
-            {["AI/BI Dashboards", "AI/BI Genie", "Data Catalog (UC)", "Delta Sharing", "SQL editor"].map((x) => (
-              <div key={x} className="rounded-md bg-ink px-3 py-2 text-center text-xs font-medium text-white/90">{x}</div>
+          <div className="rounded-md bg-deep-teal px-3 py-2 text-center text-xs font-semibold text-white">
+            This app
+            <div className="text-[10px] font-normal text-white/70">Databricks App · FastAPI + React</div>
+          </div>
+          <div className="mt-1.5 space-y-1.5">
+            {["AI/BI Dashboards", "Data Catalog (UC)", "Delta Sharing", "SQL editor"].map((x) => (
+              <div key={x} className="rounded-md bg-ink px-3 py-1.5 text-center text-[11px] font-medium text-white/90">{x}</div>
             ))}
           </div>
-          <div className="mt-2 text-center text-[10px] text-ink/40">{cloud.biTools}</div>
+          <div className="mt-auto pt-2 text-center text-[10px] text-ink/40">{cloud.biTools}</div>
         </div>
       </div>
     </div>
