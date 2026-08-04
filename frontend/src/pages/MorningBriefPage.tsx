@@ -10,6 +10,7 @@ import {
 import { fetchQuery, fetchExecNarrative } from "../api/client";
 import { useFilterStore } from "../state/filterStore";
 import { useCountUp } from "../hooks/useCountUp";
+import { UtilBar } from "../components/cards/UtilBar";
 import { num, str, pivot, type Row } from "../lib/shape";
 import { formatZAR, formatZARCompact, formatInt, formatPct, formatMonth } from "../lib/format";
 import { CHART, TIER_COLORS, SERIES } from "../components/charts/chartTheme";
@@ -105,35 +106,34 @@ export function MorningBriefPage({ onAsk }: { onAsk?: () => void }) {
 
   return (
     <div className="space-y-6">
-      {/* Greeting header */}
-      <div>
-        <h1 className="flex items-center gap-2.5 font-display text-3xl font-bold text-deep-teal">
+      {/* Branded hero — greeting + live AI morning narrative */}
+      <div className="hero-pattern card-in overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal via-[#00466f] to-[#012740] p-8 text-white shadow-card">
+        <h1 className="flex items-center gap-2.5 font-display text-3xl font-bold">
           <Sun className="h-7 w-7 text-amber" />
           Good morning — Discovery Vitality
         </h1>
-        <p className="mt-1 text-sm text-ink/55">
+        <p className="mt-1 text-sm text-white/60">
           Shared-value portfolio · South Africa · executive brief as at {asOf || "latest close"}
         </p>
-      </div>
 
-      {/* AI morning narrative — generated live from the KPI data */}
-      <div className="card-in rounded-xl border-l-[4px] border-amber bg-genie-bg p-5 shadow-card">
-        <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-deep-teal">
-          <Sparkles className="h-3.5 w-3.5 text-amber" /> Your morning brief
-          {narrative.data?.source === "computed" && (
-            <span className="ml-1 text-[11px] font-normal text-ink/40">· computed summary</span>
+        <div className="mt-5 rounded-xl border-l-[3px] border-amber bg-white/10 p-4 backdrop-blur-sm">
+          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-amber">
+            <Sparkles className="h-3.5 w-3.5" /> Your morning brief
+            {narrative.data?.source === "computed" && (
+              <span className="ml-1 text-[11px] font-normal text-white/50">· computed summary</span>
+            )}
+          </div>
+          {narrative.isLoading ? (
+            <div className="space-y-2">
+              <div className="h-3.5 w-full animate-pulse rounded bg-white/20" />
+              <div className="h-3.5 w-[85%] animate-pulse rounded bg-white/20" />
+            </div>
+          ) : (
+            <p className="text-[15px] leading-relaxed text-white/90">
+              {narrative.data?.text ?? "Portfolio summary unavailable."}
+            </p>
           )}
         </div>
-        {narrative.isLoading ? (
-          <div className="space-y-2">
-            <div className="shimmer h-3.5 w-full rounded" />
-            <div className="shimmer h-3.5 w-[85%] rounded" />
-          </div>
-        ) : (
-          <p className="text-[15px] leading-relaxed text-ink/85">
-            {narrative.data?.text ?? "Portfolio summary unavailable."}
-          </p>
-        )}
       </div>
 
       {/* KPI row */}
@@ -263,9 +263,17 @@ export function MorningBriefPage({ onAsk }: { onAsk?: () => void }) {
                 <div className="mt-0.5 text-sm text-ink/55">{str(r.detail)}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="tnum text-sm font-bold" style={{ color: STATUS_DOT[str(r.status)] }}>
-                  {str(r.metric_label)}
-                </span>
+                {(() => {
+                  const m = str(r.metric_label).match(/([\d.]+)\s*%/);
+                  const pctVal = m ? parseFloat(m[1]) : null;
+                  return pctVal != null ? (
+                    <div className="hidden w-40 sm:block"><UtilBar pct={pctVal} rag={str(r.status)} /></div>
+                  ) : (
+                    <span className="tnum text-sm font-bold" style={{ color: STATUS_DOT[str(r.status)] }}>
+                      {str(r.metric_label)}
+                    </span>
+                  );
+                })()}
                 <ChevronRight className="h-4 w-4 text-ink/30" />
               </div>
             </div>

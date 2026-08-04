@@ -52,6 +52,35 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Subtle brand pattern for hero backgrounds — a faint dot grid + a soft
+   Vitality-pink glow in the corner. Sits over the Discovery-blue gradient. */
+.hero-pattern {
+  position: relative;
+  isolation: isolate;
+}
+.hero-pattern::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(120deg, black 40%, transparent 85%);
+  mask-image: linear-gradient(120deg, black 40%, transparent 85%);
+}
+.hero-pattern::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 55%;
+  height: 180%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(237, 0, 128, 0.28), transparent);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
 /* Card mount stagger (PRD §5.2) — 200ms translate-y + opacity */
 @keyframes cardIn {
   from {

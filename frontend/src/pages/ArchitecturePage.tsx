@@ -67,7 +67,7 @@ export function ArchitecturePage() {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <div className="card-in overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal via-[#00466f] to-[#012740] p-8 text-white shadow-card">
+      <div className="hero-pattern card-in overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal via-[#00466f] to-[#012740] p-8 text-white shadow-card">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber">

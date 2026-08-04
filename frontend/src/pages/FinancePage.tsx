@@ -1,6 +1,7 @@
 import { useChartData } from "../hooks/useChartData";
 import { StatCard } from "../components/cards/StatCard";
 import { InsightCard } from "../components/cards/InsightCard";
+import { UtilBar } from "../components/cards/UtilBar";
 import { ChartFrame } from "../components/charts/ChartFrame";
 import { BarChart } from "../components/charts/BarChart";
 import { StackedAreaChart } from "../components/charts/StackedAreaChart";
@@ -111,7 +112,6 @@ export function FinancePage() {
               {capRows.map((r, i) => {
                 const rag = str(r.rag);
                 const util = num(r.cap_utilisation_pct);
-                const color = rag === "RED" ? CHART.alert : rag === "AMBER" ? CHART.amber : "#227C57";
                 const breached = rag === "RED";
                 return (
                   <tr key={i} className={`border-t border-line ${breached ? "bg-alert/5" : ""}`}>
@@ -129,15 +129,7 @@ export function FinancePage() {
                     <td className="px-3 py-2 text-right tnum text-ink/80">{formatZAR(num(r.total_payout_zar))}</td>
                     <td className="px-3 py-2 text-right tnum text-ink/60">{formatZAR(num(r.contract_cap_zar))}</td>
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-line">
-                          <div className="h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(100, util)}%`, background: color }} />
-                        </div>
-                        <span className="tnum w-12 text-right text-xs font-semibold" style={{ color }}>
-                          {formatPct(util)}
-                        </span>
-                      </div>
+                      <UtilBar pct={util} rag={rag} />
                     </td>
                   </tr>
                 );
