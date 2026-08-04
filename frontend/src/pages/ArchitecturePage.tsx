@@ -3,6 +3,7 @@ import {
   Shuffle, Sparkles, Database, MessageSquareText, GitMerge,
   Server, Gauge, Rocket, Wrench, Coins, Telescope, Ruler, ArrowRight,
   ArrowDown, Search, PlayCircle, Layers, Lock, Monitor, BookOpen,
+  KeyRound, Cpu, Scissors, CheckCircle2, CircleDot,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { CloudTopology, CLOUDS } from "../components/architecture/CloudTopology";
@@ -80,6 +81,59 @@ function SectionHead({ kicker, title, blurb }: { kicker: string; title: string; 
   );
 }
 
+// ── Live-asset chip — concrete workspace object IDs, proving this is real ──
+// infrastructure an SA can open in the workspace, not a slideware mock.
+function AssetChip({ icon: Icon, label, value, mono = true }: {
+  icon: typeof HeartPulse; label: string; value: string; mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2.5">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-amber" />
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-wide text-white/45">{label}</div>
+        <div className={`truncate text-[12px] leading-tight text-white/90 ${mono ? "font-mono" : ""}`}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── One step in the RAG / GenAI pipeline rail ──────────────────────────────
+function RagStep({ icon: Icon, title, detail, last = false }: {
+  icon: typeof HeartPulse; title: string; detail: string; last?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <div className="flex flex-col items-center">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-deep-teal">
+          <Icon className="h-4 w-4 text-white" />
+        </div>
+        {!last && <div className="my-0.5 h-full min-h-[18px] w-px flex-1 bg-deep-teal/25" />}
+      </div>
+      <div className="pb-3">
+        <div className="text-sm font-semibold leading-tight text-ink">{title}</div>
+        <div className="text-xs leading-snug text-ink/55">{detail}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── A row in the identity / UC grant matrix ────────────────────────────────
+// Two lines per row (object + grant pill, then the rationale) so a wide grant
+// name like CAN_MANAGE_RUN never collides with the "why" text.
+function GrantRow({ object, grant, why }: { object: string; grant: string; why: string }) {
+  return (
+    <div className="border-t border-line px-3 py-2.5 first:border-t-0">
+      <div className="flex items-center justify-between gap-2">
+        <code className="min-w-0 truncate text-[12px] text-deep-teal">{object}</code>
+        <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded bg-genie-bg px-2 py-0.5 text-[11px] font-bold text-deep-teal">
+          <Lock className="h-3 w-3" />{grant}
+        </span>
+      </div>
+      <div className="mt-0.5 text-[12px] leading-tight text-ink/55">{why}</div>
+    </div>
+  );
+}
+
 // ── A single serving lane in the runtime request path ─────────────────────
 // Shows the full call chain an SA cares about: the /api endpoint the browser
 // hits → the exact databricks-sdk method the backend invokes → the Databricks
@@ -140,6 +194,21 @@ export function ArchitecturePage() {
             <HeroStat value={3} label="Medallion layers" />
             <HeroStat value={4} label="Serving primitives" />
             <HeroStat value={0} label="Data copies to share" />
+          </div>
+        </div>
+
+        {/* Live-asset strip — the concrete workspace objects behind this app.
+            Everything here is deployed, not mocked: an SA can open each one. */}
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <div className="mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-amber">
+            <CircleDot className="h-3.5 w-3.5" /> Live workspace assets · not a mock
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-5">
+            <AssetChip icon={KeyRound} label="App service principal" value="a3c85de8…c6d404" />
+            <AssetChip icon={Server} label="Serverless SQL warehouse" value="dcb1c3dd8d1570d6" />
+            <AssetChip icon={Search} label="Vector Search endpoint" value="discovery-vitality-vs-endpoint" mono={false} />
+            <AssetChip icon={MessageSquareText} label="AI/BI Genie spaces" value="3 · one per module" mono={false} />
+            <AssetChip icon={PlayCircle} label="Databricks Job" value="id 409748057125494" />
           </div>
         </div>
       </div>
@@ -281,6 +350,76 @@ export function ArchitecturePage() {
             <Node icon={Coins} title="Rewards & Premiums" sub="liability + lapse" />
             <Node icon={GitMerge} title="The Bridge" sub="behaviour → outcomes" />
             <Node icon={MessageSquareText} title="Ask Genie" sub="hub + deep-links" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── DEEP DIVE · two side-by-side panels an SA will interrogate ────── */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* GenAI / RAG pipeline */}
+        <div className="col-span-12 lg:col-span-7">
+          <SectionHead
+            kicker="Deep dive · GenAI"
+            title="Grounded RAG — retrieval, then generation"
+            blurb="The Documents capability is real retrieval-augmented generation: a Delta Sync Vector Search index over the policy corpus, retrieved top-k, then grounded through Genie with inline [n] citations — no free-floating LLM answers."
+          />
+          <div className="card-in rounded-xl border border-line bg-white p-6 shadow-card">
+            <div className="mb-4 flex flex-wrap items-center gap-2 text-[11px]">
+              <span className="rounded-full bg-genie-bg px-2.5 py-1 font-semibold text-deep-teal">Delta Sync index</span>
+              <span className="rounded-full bg-genie-bg px-2.5 py-1 font-semibold text-deep-teal">databricks-gte-large-en</span>
+              <span className="rounded-full bg-genie-bg px-2.5 py-1 font-semibold text-deep-teal">auto-synced from Delta</span>
+            </div>
+            <RagStep icon={FileText} title="1 · Policy corpus in Delta"
+              detail="Vitality rules · partner contracts · clinical passages — governed in UC" />
+            <RagStep icon={Scissors} title="2 · Chunk (~800 tok, 120 overlap)"
+              detail="heading-aware splits → chunk_id · doc_title · page · section" />
+            <RagStep icon={Cpu} title="3 · Embed + index"
+              detail="databricks-gte-large-en → Delta Sync index on discovery-vitality-vs-endpoint" />
+            <RagStep icon={Search} title="4 · Retrieve top-3"
+              detail="w.vector_search_indexes.query_index(...) at request time" />
+            <RagStep icon={MessageSquareText} title="5 · Ground through Genie"
+              detail="retrieved passages injected as sources → answer cites [n]" last />
+            <div className="mt-1 flex items-start gap-2 rounded-lg border border-deep-teal/25 bg-genie-bg/50 px-3 py-2">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" />
+              <span className="text-[11px] leading-snug text-ink/70">
+                If retrieval returns nothing, the app says so — it never fabricates a passage. Answers are
+                grounded strictly on the top-k sources.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Identity & UC grant matrix */}
+        <div className="col-span-12 lg:col-span-5">
+          <SectionHead
+            kicker="Deep dive · Security"
+            title="Identity & least-privilege grants"
+            blurb="In-app auth is the no-arg WorkspaceClient() resolving the app's service principal — no tokens in code. Every grant is scoped to exactly what a capability needs."
+          />
+          <div className="card-in overflow-hidden rounded-xl border border-line bg-white shadow-card">
+            <div className="flex items-center gap-2.5 border-b border-line bg-surface/60 px-3 py-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-deep-teal">
+                <KeyRound className="h-4 w-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-ink">App service principal</div>
+                <code className="text-[11px] text-ink/50">a3c85de8-0856-45e7-ab05-72c8a0c6d404</code>
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-ink/40">
+              <span>UC object</span><span>Grant · rationale</span>
+            </div>
+            <GrantRow object="…vitality_pulse_gold" grant="SELECT" why="read the app-facing aggregates" />
+            <GrantRow object="…vitality_pulse_silver" grant="SELECT" why="Genie space source views" />
+            <GrantRow object="warehouse dcb1c3dd8d1570d6" grant="CAN_USE" why="run SQL + Genie NL→SQL" />
+            <GrantRow object="job 409748057125494" grant="CAN_MANAGE_RUN" why="trigger the partner report" />
+            <div className="flex items-start gap-2 border-t border-line bg-genie-bg/40 px-3 py-2.5">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-deep-teal" />
+              <span className="text-[11px] leading-snug text-ink/70">
+                No grant on <b>bronze</b> — raw PII never leaves the platform. The UI can only ever surface
+                what gold exposes.
+              </span>
+            </div>
           </div>
         </div>
       </div>

@@ -41,10 +41,10 @@ const STREAM_SOURCES = ["Half-hourly device reads", "Gym / IoT check-ins", "Rewa
 // reading the gold schema only. Shown as the fan-out from Gold, annotated with
 // the concrete databricks-sdk surface so an SA can trace it to code.
 const SERVING = [
-  { name: "Serverless SQL", sub: "charts", api: "statement_execution" },
-  { name: "AI/BI Genie", sub: "3 spaces · NL→SQL", api: "genie" },
-  { name: "Vector Search", sub: "policy RAG · citations", api: "vector_search_indexes" },
-  { name: "Databricks Jobs", sub: "partner report → CSV", api: "jobs" },
+  { name: "Serverless SQL", sub: "charts" },
+  { name: "AI/BI Genie", sub: "3 spaces · NL→SQL" },
+  { name: "Vector Search", sub: "policy RAG · citations" },
+  { name: "Databricks Jobs", sub: "partner report → CSV" },
 ];
 
 function GreenArrow({ label }: { label?: string }) {
@@ -78,12 +78,11 @@ function SourceLane({ label, items }: { label: string; items: string[] }) {
   );
 }
 
-function ServingChip({ name, sub, api }: { name: string; sub: string; api: string }) {
+function ServingChip({ name, sub }: { name: string; sub: string }) {
   return (
-    <div className="rounded-md border border-line bg-white px-3 py-2 text-center">
+    <div className="flex flex-col rounded-md border border-line bg-white px-2.5 py-2 text-center">
       <div className="text-xs font-semibold text-ink">{name}</div>
       <div className="text-[10px] leading-tight text-ink/45">{sub}</div>
-      <code className="mt-1 block border-t border-line/70 pt-1 text-[9px] leading-none text-deep-teal/70">w.{api}</code>
     </div>
   );
 }
@@ -145,8 +144,11 @@ export function CloudTopology({ cloud }: { cloud: CloudSpec }) {
           <div className="rounded-lg border border-dashed border-line p-3">
             <div className="mb-2 text-[13px] font-semibold text-ink">Serving — the primitives this app calls</div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {SERVING.map((s) => <ServingChip key={s.name} name={s.name} sub={s.sub} api={s.api} />)}
+              {SERVING.map((s) => <ServingChip key={s.name} name={s.name} sub={s.sub} />)}
             </div>
+            <code className="mt-2 block text-[10px] leading-tight text-deep-teal/70">
+              w.statement_execution · w.genie · w.vector_search_indexes · w.jobs
+            </code>
           </div>
         </div>
 
