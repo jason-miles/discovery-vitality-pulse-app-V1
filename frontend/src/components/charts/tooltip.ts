@@ -23,10 +23,3 @@ export const tooltipStyle = {
   itemStyle: { padding: "2px 0", fontSize: 12 },
   cursor: { fill: "rgba(0,58,93,0.06)" },
 };
-
-// Shared legend styling — smaller, refined, consistent across all charts.
-export const legendStyle = {
-  fontSize: 12,
-  fontFamily: "Inter, sans-serif",
-  paddingTop: 6,
-};

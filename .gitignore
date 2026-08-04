@@ -33,3 +33,6 @@ data_out/
 
 # Isaac local config
 .isaac/
+
+# Scratch smoke-test scripts (not part of the app)
+scripts/test_queries*.py

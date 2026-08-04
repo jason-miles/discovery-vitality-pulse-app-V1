@@ -34,10 +34,10 @@ export function BusinessOverviewPage() {
           teams one shared evidence base instead of three data silos.
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <HeroStat value={50000} space label="Members analysed" />
-          <HeroStat value={3} label="Teams, one P&L" />
-          <HeroStat value={24} suffix=" mo" label="Behaviour → claims history" />
-          <HeroStat value={36} prefix="~" suffix="%" label="Lower claims, top tier" />
+          <HeroStat value={50000} space size="text-3xl" label="Members analysed" />
+          <HeroStat value={3} size="text-3xl" label="Teams, one P&L" />
+          <HeroStat value={24} suffix=" mo" size="text-3xl" label="Behaviour → claims history" />
+          <HeroStat value={36} prefix="~" suffix="%" size="text-3xl" label="Lower claims, top tier" />
         </div>
       </div>
 
