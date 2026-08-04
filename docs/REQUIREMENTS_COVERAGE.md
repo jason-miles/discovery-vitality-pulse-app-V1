@@ -73,4 +73,4 @@ Legend: ✅ done · 🟡 partial / demo-mocked · ⬜ not built
 - **RAG corpus is mocked.** Real answers need a Mosaic AI Vector Search index over the Vitality rules / partner contracts / clinical guidelines documents. The UI contract is ready; only the retrieval backend is stubbed.
 - **Workflows are demo-only.** The plan→confirm→execute UX is complete, but the actual report-generation Job and approval-email tool are not wired to real Databricks Jobs / email.
 - **Genie spaces cover the 3 reporting domains.** The chatbot PRD's original space names (members/partners/financials) are mapped onto our health/finance/bridge spaces rather than created separately.
-- **Deploy blocked on infra:** the Databricks Apps build proxy (`pypi-proxy.dev.databricks.com`) has been timing out; app + grants + code are all staged.
+- **Deploy:** live at the workspace Apps URL. Fixed by shipping an empty `requirements.txt` so the pip path reuses pre-installed fastapi/uvicorn/databricks-sdk (avoids flaky `uv` + `pypi-proxy` installs).

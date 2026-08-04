@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { Table2, BarChart3 } from "lucide-react";
 import clsx from "clsx";
 import { useGenieInsight } from "../../hooks/useGenieInsight";
+import { useInView } from "../../hooks/useInView";
 import { GenieInsightPanel } from "./GenieInsightPanel";
 import { useInsightRegistry } from "../../state/insightRegistry";
 import type { Module } from "../../api/client";
@@ -39,7 +40,10 @@ export function InsightCard({
   index = 0,
 }: Props) {
   const [showTable, setShowTable] = useState(false);
-  const insight = useGenieInsight(cardId, module, insightPrompt, insightFallback ?? null);
+  // Defer the Genie call until the card scrolls into view, so chart-heavy
+  // pages don't fire every insight request at once (perceived speed).
+  const { ref, inView } = useInView<HTMLElement>("300px");
+  const insight = useGenieInsight(cardId, module, insightPrompt, insightFallback ?? null, inView);
   const register = useInsightRegistry((s) => s.register);
 
   useEffect(() => {
@@ -48,6 +52,7 @@ export function InsightCard({
 
   return (
     <section
+      ref={ref}
       className={clsx(
         "card-in rounded-xl border border-line bg-white p-6 shadow-card",
         className,

@@ -25,7 +25,7 @@ export function HealthPage() {
   const s = (stats.data?.rows[0] ?? {}) as Row;
 
   // --- Engagement over time: pivot to wide, one line per tier ---
-  const engPivot = pivot(engagement.data?.rows ?? [], "week_start", "engagement_tier", "goal_met_pct");
+  const engPivot = pivot(engagement.data?.rows ?? [], "month_start", "engagement_tier", "goal_met_pct");
   const engSeries = TIER_ORDER.filter((t) => engPivot.series.includes(t)).map((t) => ({
     key: t, color: TIER_COLORS[t], label: t.replace("_", " ").toLowerCase(),
   }));
@@ -96,7 +96,7 @@ export function HealthPage() {
         module="health"
         index={0}
         title="Engagement over time"
-        subtitle="Weekly goal-met rate by engagement tier"
+        subtitle="Monthly goal-met rate by engagement tier"
         insightPrompt="Summarise how goal-met rate trends differ across engagement tiers over the selected period, and call out any inflection points such as challenge-cycle drop-off."
         insightFallback="Goal-met rates separate cleanly by tier, with highly-active members sustaining the highest engagement and dormant members flat near the floor."
       >
@@ -108,7 +108,7 @@ export function HealthPage() {
         >
           <TimeSeriesChart
             data={engPivot.data}
-            xKey="week_start"
+            xKey="month_start"
             series={engSeries}
             xTickFormatter={formatMonth}
             yTickFormatter={(v) => `${v}%`}

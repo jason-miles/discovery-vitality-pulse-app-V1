@@ -3,7 +3,7 @@
 // To use the official asset instead, drop it in frontend/public/ and point
 // <img src="/vitality-logo.svg" /> here.
 
-export const VITALITY_PINK = "#F41C5E";
+export const VITALITY_PINK = "#ED0080";
 
 export function VitalityRoundel({ size = 32 }: { size?: number }) {
   return (

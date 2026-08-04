@@ -29,14 +29,14 @@ const SPACE_TO_MODULE: Record<GenieSpaceId, Module> = {
 // ── Lightweight intent router ─────────────────────────────────────────────
 type Decision =
   | { kind: "genie"; space: GenieSpaceId }
-  | { kind: "rag"; fixture: keyof typeof RAG_FIXTURES }
+  | { kind: "rag" }
   | { kind: "workflow"; workflowId: WorkflowId }
   | { kind: "clarify"; question: string; chips: string[] };
 
 function route(text: string, forced?: ForcedRoute): Decision {
   const t = text.toLowerCase();
   if (forced === "genie" || forced === "rag" || forced === "workflow") {
-    if (forced === "rag") return { kind: "rag", fixture: pickRag(t) };
+    if (forced === "rag") return { kind: "rag" };
     if (forced === "workflow") return { kind: "workflow", workflowId: pickWorkflow(t) };
     return { kind: "genie", space: "members" };
   }
@@ -48,7 +48,7 @@ function route(text: string, forced?: ForcedRoute): Decision {
     return { kind: "workflow", workflowId: pickWorkflow(t) };
   // RAG intent — policy/contract/clinical questions
   if (/\b(rule|rules|clause|policy|cap|contract|schedule|points|termination|exclusivity|compliance|popia|fsca)\b/.test(t))
-    return { kind: "rag", fixture: pickRag(t) };
+    return { kind: "rag" };
   // Genie space by keyword
   if (/\b(partner|virgin|planet|check-?in|utilis|redemption|cap)\b/.test(t)) return { kind: "genie", space: "partners" };
   if (/\b(claim|premium|loss ratio|net value|lapse|actuar)\b/.test(t)) return { kind: "genie", space: "financials" };
@@ -57,11 +57,6 @@ function route(text: string, forced?: ForcedRoute): Decision {
   return { kind: "genie", space: "members" };
 }
 
-const pickRag = (t: string): keyof typeof RAG_FIXTURES => {
-  if (t.includes("parkrun")) return "parkrun_points_cap";
-  if (t.includes("termination") || t.includes("exclusiv") || t.includes("virgin")) return "virgin_active_clauses";
-  return "health_check_points_cap";
-};
 const pickWorkflow = (t: string): WorkflowId =>
   /\b(anomaly|adjustment|actuar|cashback)\b/.test(t) ? "submit_reward_adjustment_review" : "generate_partner_performance_report";
 
@@ -113,7 +108,7 @@ export class AgentClient {
     if (!this.live(cid)) return;
 
     if (d.kind === "genie") yield* this.genieFlow(cid, d.space, text);
-    else if (d.kind === "rag") yield* this.ragFlow(cid, d.fixture);
+    else if (d.kind === "rag") yield* this.ragFlow(cid, text);
     else if (d.kind === "workflow") yield* this.workflowPlanFlow(cid, d.workflowId);
     else yield* this.clarifyFlow(cid, d);
 
@@ -150,19 +145,31 @@ export class AgentClient {
     yield* this.followups(cid, ["Break this down further", "Turn this into a report", "Show a related policy rule"]);
   }
 
-  private async *ragFlow(cid: string, fixture: keyof typeof RAG_FIXTURES): AsyncGenerator<AgentEvent> {
+  private async *ragFlow(cid: string, question: string): AsyncGenerator<AgentEvent> {
     yield { kind: "block_start", block: { type: "status", label: "Searching policy documents…", capability: "rag" } };
-    await sleep(between(800, 1500));
+    // Real RAG over the Vector Search policy index.
+    let data: { markdown: string; citations: Citation[]; source?: string; lowConfidence?: boolean } | null = null;
+    try {
+      const res = await fetch("/api/genie/rag", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      if (res.ok) data = await res.json();
+    } catch { /* fall through */ }
     if (!this.live(cid)) return;
-    const fx = RAG_FIXTURES[fixture];
-    yield { kind: "block_start", block: { type: "citation_answer", markdown: "", citations: fx.citations } };
-    for (const tok of tokenize(fx.markdown)) {
+    if (!data || data.source === "error") {
+      yield { kind: "block_start", block: { type: "error", title: "Document search unavailable", detail: "The policy library couldn't be reached — please try again.", retryable: true } };
+      yield { kind: "block_end" };
+      return;
+    }
+    yield { kind: "block_start", block: { type: "citation_answer", markdown: "", citations: data.citations, lowConfidence: data.lowConfidence } };
+    for (const tok of tokenize(data.markdown)) {
       if (!this.live(cid)) return;
       yield { kind: "block_delta", delta: tok };
-      await sleep(between(10, 24));
+      await sleep(between(8, 18));
     }
-    yield { kind: "block_end", block: { type: "citation_answer", markdown: fx.markdown, citations: fx.citations } };
-    yield* this.followups(cid, ["Show the source passage", "What about the annual cap?"]);
+    yield { kind: "block_end", block: { type: "citation_answer", markdown: data.markdown, citations: data.citations, lowConfidence: data.lowConfidence } };
+    yield* this.followups(cid, ["Show the source passage", "Which document governs this?"]);
   }
 
   private async *workflowPlanFlow(cid: string, workflowId: WorkflowId): AsyncGenerator<AgentEvent> {
@@ -197,16 +204,35 @@ export class AgentClient {
     const run = WORKFLOW_RUNS[workflowId];
     const steps: WorkflowStep[] = run.steps.map((s) => ({ label: s.label, state: "pending" as const }));
     const artifacts: WorkflowArtifact[] = [];
+    let runId = run.runId;
+
+    // The partner-report workflow triggers a REAL Databricks Job run.
+    if (workflowId === "generate_partner_performance_report") {
+      const partner = params.find((p) => p.key === "partner")?.value ?? "Planet Fitness";
+      const period = params.find((p) => p.key === "period")?.value ?? "Q3 2026";
+      try {
+        const res = await fetch("/api/workflow/partner-report", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ partner, period }),
+        });
+        const data = await res.json();
+        if (data.run_id) {
+          runId = `job-run ${data.run_id}`;
+          if (data.run_url) run.artifacts[0] = { ...run.artifacts[0], url: data.run_url };
+        }
+      } catch { /* fall back to simulated run */ }
+    }
+
     const emit = (done = false): Extract<AgentEvent, { kind: "block_start" }> => ({
       kind: "block_start",
-      block: { type: "workflow_progress", runId: run.runId, workflowId, steps: steps.map((s) => ({ ...s })), artifacts: [...artifacts], executedBy: "Pieter van der Merwe", executedAt: new Date().toISOString(), done },
+      block: { type: "workflow_progress", runId, workflowId, steps: steps.map((s) => ({ ...s })), artifacts: [...artifacts], executedBy: "Pieter van der Merwe", executedAt: new Date().toISOString(), done },
     });
     yield emit();
     for (let i = 0; i < run.steps.length; i++) {
       steps[i].state = "running"; yield emit();
       await sleep(run.steps[i].ms);
       if (run.steps[i].retry) {
-        steps[i].state = "failed"; steps[i].detail = "PDF render service returned 503. Retrying…"; yield emit();
+        steps[i].state = "failed"; steps[i].detail = "Transient error. Retrying step…"; yield emit();
         await sleep(between(900, 1400)); steps[i].state = "running"; steps[i].detail = undefined; yield emit();
         await sleep(between(1000, 1500));
       }
@@ -225,31 +251,7 @@ export function getAgentClient(): AgentClient {
   return (_client ??= new AgentClient());
 }
 
-// ── Prototype fixtures (RAG corpus + workflow defs) ───────────────────────
-const RAG_FIXTURES: Record<string, { markdown: string; citations: Citation[] }> = {
-  health_check_points_cap: {
-    markdown: "Under the 2026 Vitality rules, Health Check points are capped at **7 500 points per member per calendar year** [1]. Each individual biometric screening (blood pressure, cholesterol, glucose, BMI) earns 1 000 points, and the annual comprehensive Health Check earns a further 2 500 points [2]. Points earned beyond the annual cap do not carry over into the next year [1].",
-    citations: [
-      { id: 1, docTitle: "Vitality Main Rules 2026", docType: "vitality_rules", page: 34, section: "Annual Points Caps", passage: "The maximum number of Vitality points that may be earned from Health Check activities is limited to 7 500 points per member per calendar year. Points earned in excess of this annual cap are forfeited and do not carry forward." },
-      { id: 2, docTitle: "Vitality Main Rules 2026", docType: "vitality_rules", page: 33, section: "Health Check Points Schedule", passage: "Each qualifying biometric screening completed at an accredited provider earns 1 000 points. Completion of the full annual Vitality Health Check earns an additional 2 500 points, subject to the Health Check annual cap." },
-    ],
-  },
-  parkrun_points_cap: {
-    markdown: "For 2026, parkrun completions earn **300 points per event**, capped at **one qualifying event per week** and a maximum of **15 000 points per year** [1]. Events must be verified via the parkrun SA barcode scan at an accredited event to qualify [2].",
-    citations: [
-      { id: 1, docTitle: "Vitality Main Rules 2026", docType: "vitality_rules", page: 41, section: "Physical Activity — Events", passage: "parkrun completions earn 300 points each, limited to one qualifying event per calendar week. The annual maximum earnable from parkrun events is 15 000 points per member." },
-      { id: 2, docTitle: "Vitality Main Rules 2026", docType: "vitality_rules", page: 42, section: "Event Verification", passage: "Points are awarded only where the event completion is verified through the accredited parkrun SA barcode scanning process." },
-    ],
-  },
-  virgin_active_clauses: {
-    markdown: "The Virgin Active master agreement requires **90 days' written notice** for termination without cause [1], and grants Vitality **category exclusivity** across national health-club chains for the agreement term [2]. Co-marketing spend is governed separately and requires joint sign-off above R500 000 per campaign [2].",
-    citations: [
-      { id: 1, docTitle: "Virgin Active Master Services Agreement", docType: "partner_contracts", page: 12, section: "12. Term & Termination", passage: "Either party may terminate this Agreement without cause upon ninety (90) days' prior written notice to the other party." },
-      { id: 2, docTitle: "Virgin Active Master Services Agreement", docType: "partner_contracts", page: 18, section: "18. Exclusivity & Co-Marketing", passage: "For the term of this Agreement, the Partner grants Vitality category exclusivity across national health-club chains. Co-marketing expenditure exceeding R500 000 per campaign requires joint written approval." },
-    ],
-  },
-};
-
+// ── Prototype fixtures (workflow defs — RAG is now real Vector Search) ─────
 interface PlanDef { title: string; params: WorkflowParam[]; steps: string[]; consequence: string; recipients?: string[]; requiresTypedConfirmation?: boolean; }
 const WORKFLOW_PLANS: Record<WorkflowId, PlanDef> = {
   generate_partner_performance_report: {

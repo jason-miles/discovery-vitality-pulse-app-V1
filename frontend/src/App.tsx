@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { GenieDrawer } from "./components/layout/GenieDrawer";
+import { StoryTour } from "./components/layout/StoryTour";
 import type { Module } from "./api/client";
 import { formatDate } from "./lib/format";
 
@@ -79,6 +80,7 @@ export default function App() {
   const location = useLocation();
   const [genieOpen, setGenieOpen] = useState(false);
   const [genieModule, setGenieModule] = useState<Module>("health");
+  const [tourOpen, setTourOpen] = useState(false);
   const meta = META[location.pathname] ?? META["/health"];
   const noFilters = ["/genie", "/architecture", "/business", "/brief", "/assistant"].includes(location.pathname);
 
@@ -95,7 +97,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar freshness={freshness} />
+      <Sidebar freshness={freshness} onPlayStory={() => setTourOpen(true)} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar
           title={meta.title}
@@ -124,6 +126,7 @@ export default function App() {
         </main>
       </div>
       <GenieDrawer open={genieOpen} onClose={() => setGenieOpen(false)} module={genieModule} />
+      <StoryTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Activity, Wallet, GitMerge, PanelLeftClose, PanelLeft, Sparkles, Networ
 import clsx from "clsx";
 import { useState } from "react";
 import { VitalityLockup } from "./Logo";
+import { StoryTourButton } from "./StoryTour";
 
 const NAV = [
   { to: "/health", label: "Health & Wellness", icon: Activity },
@@ -12,7 +13,7 @@ const NAV = [
 
 const GENIE_NAV = { to: "/genie", label: "Ask the Pulse Assistant", icon: Sparkles };
 
-export function Sidebar({ freshness }: { freshness?: string }) {
+export function Sidebar({ freshness, onPlayStory }: { freshness?: string; onPlayStory?: () => void }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -127,8 +128,13 @@ export function Sidebar({ freshness }: { freshness?: string }) {
         </div>
       </nav>
 
-      {/* Footer: data freshness */}
+      {/* Footer: play story, data freshness, collapse */}
       <div className="border-t border-line px-3 py-3">
+        {onPlayStory && (
+          <div className="mb-2">
+            <StoryTourButton onClick={onPlayStory} collapsed={collapsed} />
+          </div>
+        )}
         {!collapsed && (
           <div className="mb-2 px-2 text-xs text-ink/50">
             <div className="font-medium text-ink/70">Data freshness</div>

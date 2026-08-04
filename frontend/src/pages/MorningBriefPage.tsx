@@ -7,8 +7,9 @@ import {
   ComposedChart, Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
-import { fetchQuery } from "../api/client";
+import { fetchQuery, fetchExecNarrative } from "../api/client";
 import { useFilterStore } from "../state/filterStore";
+import { useCountUp } from "../hooks/useCountUp";
 import { num, str, pivot, type Row } from "../lib/shape";
 import { formatZAR, formatZARCompact, formatInt, formatPct, formatMonth } from "../lib/format";
 import { CHART, TIER_COLORS, SERIES } from "../components/charts/chartTheme";
@@ -35,19 +36,22 @@ function Panel({ title, sub, children, className = "" }: {
   );
 }
 
-// A KPI tile: label, big value, sub, and a delta chip vs prior month.
-function Kpi({ icon: Icon, label, value, sub, delta, higherIsBetter = true }: {
-  icon: typeof Wallet; label: string; value: string; sub: string;
-  delta?: number | null; higherIsBetter?: boolean;
+// A KPI tile: label, animated value, sub, and a delta chip vs prior month.
+// Pass raw + fmt to get a count-up animation; or value for a static string.
+function Kpi({ icon: Icon, label, value, raw, fmt, sub, delta, higherIsBetter = true }: {
+  icon: typeof Wallet; label: string; value?: string; raw?: number; fmt?: (n: number) => string;
+  sub: string; delta?: number | null; higherIsBetter?: boolean;
 }) {
   const good = delta == null || delta === 0 ? null : higherIsBetter ? delta > 0 : delta < 0;
+  const animated = useCountUp(raw ?? 0);
+  const display = raw != null && fmt ? fmt(animated) : value;
   return (
     <div className="rounded-xl border border-line bg-white p-5 shadow-card">
       <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink/45">
         <Icon className="h-4 w-4" /> {label}
       </div>
       <div className="mt-2 flex items-end gap-2">
-        <div className="tnum font-display text-[32px] font-bold leading-none text-deep-teal">{value}</div>
+        <div className="tnum font-display text-[32px] font-bold leading-none text-deep-teal">{display}</div>
         {delta != null && delta !== 0 && (
           <span className={`mb-1 tnum text-xs font-semibold ${good ? "text-[#227C57]" : "text-alert"}`}>
             {delta > 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}%
@@ -69,6 +73,7 @@ export function MorningBriefPage({ onAsk }: { onAsk?: () => void }) {
   const mix = useQuery({ queryKey: ["exec_mix"], queryFn: () => fetchQuery("exec_engagement_mix", FIXED), staleTime: 6e5 });
   const valueLoop = useQuery({ queryKey: ["exec_valueloop"], queryFn: () => fetchQuery("bridge_value_loop", FIXED), staleTime: 6e5 });
   const payout = useQuery({ queryKey: ["exec_payout"], queryFn: () => fetchQuery("finance_cap_utilisation", FIXED), staleTime: 6e5 });
+  const narrative = useQuery({ queryKey: ["exec_narrative"], queryFn: fetchExecNarrative, staleTime: 6e5, retry: false });
   // touch the store so the page re-renders consistently with the rest of the app
   useFilterStore();
 
@@ -111,23 +116,43 @@ export function MorningBriefPage({ onAsk }: { onAsk?: () => void }) {
         </p>
       </div>
 
+      {/* AI morning narrative — generated live from the KPI data */}
+      <div className="card-in rounded-xl border-l-[4px] border-amber bg-genie-bg p-5 shadow-card">
+        <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-deep-teal">
+          <Sparkles className="h-3.5 w-3.5 text-amber" /> Your morning brief
+          {narrative.data?.source === "computed" && (
+            <span className="ml-1 text-[11px] font-normal text-ink/40">· computed summary</span>
+          )}
+        </div>
+        {narrative.isLoading ? (
+          <div className="space-y-2">
+            <div className="shimmer h-3.5 w-full rounded" />
+            <div className="shimmer h-3.5 w-[85%] rounded" />
+          </div>
+        ) : (
+          <p className="text-[15px] leading-relaxed text-ink/85">
+            {narrative.data?.text ?? "Portfolio summary unavailable."}
+          </p>
+        )}
+      </div>
+
       {/* KPI row */}
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6 lg:col-span-3">
-          <Kpi icon={Coins} label="Net value / member" value={formatZAR(num(k.net_value_pm))}
+          <Kpi icon={Coins} label="Net value / member" raw={num(k.net_value_pm)} fmt={(n) => formatZAR(n)}
             sub="premium − claims − rewards − discount, pm"
             delta={pct(k.net_value_pm, k.net_value_pm_prev)} />
         </div>
         <div className="col-span-6 lg:col-span-3">
-          <Kpi icon={ShieldAlert} label="Portfolio loss ratio" value={formatPct(num(k.loss_ratio))}
+          <Kpi icon={ShieldAlert} label="Portfolio loss ratio" raw={num(k.loss_ratio)} fmt={(n) => formatPct(n)}
             sub="claims ÷ premium" delta={pct(k.loss_ratio, k.loss_ratio_prev)} higherIsBetter={false} />
         </div>
         <div className="col-span-6 lg:col-span-3">
-          <Kpi icon={Activity} label="Engaged members" value={formatPct(num(k.engaged_pct))}
+          <Kpi icon={Activity} label="Engaged members" raw={num(k.engaged_pct)} fmt={(n) => formatPct(n)}
             sub="in ACTIVE or HIGHLY_ACTIVE" delta={pct(k.engaged_pct, k.engaged_pct_prev)} />
         </div>
         <div className="col-span-6 lg:col-span-3">
-          <Kpi icon={TrendingUp} label="Lapse rate" value={formatPct(num(k.lapse_rate))}
+          <Kpi icon={TrendingUp} label="Lapse rate" raw={num(k.lapse_rate)} fmt={(n) => formatPct(n)}
             sub="monthly, portfolio" delta={pct(k.lapse_rate, k.lapse_rate_prev)} higherIsBetter={false} />
         </div>
       </div>

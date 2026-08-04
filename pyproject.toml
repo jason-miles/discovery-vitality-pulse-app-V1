@@ -3,13 +3,14 @@ name = "vitality-pulse"
 version = "1.0.0"
 description = "Vitality Pulse — Shared-Value Analytics Portal (Databricks App)"
 requires-python = ">=3.11"
+# Local-dev deps only. Workspace deploys use an empty requirements.txt so the
+# Apps pip path reuses pre-installed fastapi / uvicorn / databricks-sdk and
+# skips the flaky pypi-proxy (uv installs do NOT get pre-installed libs).
 dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "pydantic>=2.7",
-    # databricks-sdk is pre-installed in the Databricks Apps runtime, so it is
-    # intentionally NOT declared here — this trims ~8 transitive wheels the
-    # build proxy would otherwise have to fetch. It is still imported at runtime.
+    "databricks-sdk>=0.33",
 ]
 
 [tool.uv]

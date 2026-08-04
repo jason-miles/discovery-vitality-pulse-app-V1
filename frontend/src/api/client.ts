@@ -55,6 +55,12 @@ export interface GenieAnswer {
   error: boolean;
 }
 
+export async function fetchExecNarrative(): Promise<Insight> {
+  const res = await fetch("/api/exec-narrative");
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json() as Promise<Insight>;
+}
+
 export async function fetchGenieSpaces(): Promise<GenieSpace[]> {
   const res = await fetch("/api/genie/spaces");
   if (!res.ok) throw new Error(`${res.status}`);

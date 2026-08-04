@@ -9,6 +9,10 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },
 });
 
+// Resume the serverless warehouse immediately so the first data query on any
+// page isn't cold. Fire-and-forget; failures are harmless.
+fetch("/api/warmup", { method: "POST" }).catch(() => {});
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

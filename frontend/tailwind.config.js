@@ -4,19 +4,22 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Discovery Vitality brand palette. Class names are kept stable
+      // (deep-teal = primary, amber = accent) but the VALUES are the Discovery
+      // Vitality identity: Discovery blue primary + signature Vitality Pink accent.
       colors: {
-        ink: "#101828",
-        surface: "#F7F8FA",
+        ink: "#0B1B2B", // Discovery near-navy text
+        surface: "#E9EDF2", // light grey app background (cards pop against it)
         card: "#FFFFFF",
-        line: "#E4E7EC",
-        "deep-teal": "#0B5563",
-        amber: "#E8A33D",
+        line: "#DCE2EA", // hairline borders (slightly deeper for grey bg)
+        "deep-teal": "#003A5D", // PRIMARY — Discovery blue (nav, buttons, chart series 1)
+        amber: "#ED0080", // ACCENT — Vitality Pink (✦ mark, CTAs, positive pop, series 2)
         // supporting chart series
-        "teal-mid": "#4E9BAA",
+        "teal-mid": "#0E7BA8", // mid Discovery blue
         violet: "#8A6FB8",
         alert: "#C0564F",
-        // genie panel
-        "genie-bg": "#F4F9F9",
+        // AI insight / assistant panel — soft Vitality-pink tint
+        "genie-bg": "#FDEFF6",
       },
       fontFamily: {
         display: ['"Sora"', "system-ui", "sans-serif"],

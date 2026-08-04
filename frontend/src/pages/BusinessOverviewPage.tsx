@@ -20,7 +20,7 @@ export function BusinessOverviewPage() {
   return (
     <div className="space-y-6">
       {/* Hero — "Why this matters" */}
-      <div className="card-in overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal to-[#083f4a] p-8 text-white shadow-card">
+      <div className="card-in overflow-hidden rounded-xl bg-gradient-to-br from-deep-teal via-[#00466f] to-[#012740] p-8 text-white shadow-card">
         <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber">
           <span className="h-2 w-2 rounded-full bg-amber" /> Business Overview
         </div>

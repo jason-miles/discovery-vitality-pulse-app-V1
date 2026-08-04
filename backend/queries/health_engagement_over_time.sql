@@ -1,6 +1,6 @@
--- Engagement over time: weekly goal_met_pct by engagement_tier.
+-- Engagement over time: monthly goal_met_pct by engagement_tier.
 SELECT
-  date_trunc('week', activity_date)              AS week_start,
+  date_trunc('month', activity_date)             AS month_start,
   engagement_tier,
   round(avg(goal_met_pct), 1)                    AS goal_met_pct,
   round(avg(avg_steps))                          AS avg_steps

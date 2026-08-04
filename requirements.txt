@@ -1,0 +1,10 @@
+# Intentionally empty.
+#
+# Databricks Apps pip installs use the pre-installed runtime stack
+# (fastapi, uvicorn[standard], pydantic via fastapi, databricks-sdk).
+# Declaring those in pyproject.toml + uv.lock forced a full `uv` install
+# through pypi-proxy.dev.databricks.com, which was timing out and blocking
+# every deploy. An empty requirements.txt selects the pip path and skips
+# the proxy entirely.
+#
+# Local development still uses pyproject.toml / uv.lock via `uv run`.
