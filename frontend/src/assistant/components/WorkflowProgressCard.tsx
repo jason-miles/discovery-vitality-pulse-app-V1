@@ -31,7 +31,7 @@ export function WorkflowProgressCard({ block }: { block: Progress }) {
         {block.artifacts.length > 0 && (
           <div className="mt-3 space-y-1.5 border-t border-line pt-3">
             {block.artifacts.map((a) => (
-              <a key={a.name} href={a.url} className="flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-deep-teal hover:bg-genie-bg">
+              <a key={a.name} href={a.url} download className="flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm text-deep-teal hover:bg-genie-bg">
                 <FileText className="h-4 w-4" /> {a.name}
                 <Download className="ml-auto h-3.5 w-3.5 text-ink/40" />
               </a>

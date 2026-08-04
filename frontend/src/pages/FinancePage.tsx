@@ -96,7 +96,7 @@ export function FinancePage() {
             valueFormatter={(v) => formatZARCompact(v)}
           />
         </ChartFrame>
-        {/* Cap-utilisation table */}
+        {/* Cap-utilisation table with inline utilisation bars */}
         <div className="mt-4 overflow-hidden rounded-lg border border-line">
           <table className="w-full text-sm">
             <thead className="bg-surface text-xs text-ink/55">
@@ -104,20 +104,44 @@ export function FinancePage() {
                 <th className="px-3 py-2 text-left font-medium">Partner</th>
                 <th className="px-3 py-2 text-right font-medium">MTD payout</th>
                 <th className="px-3 py-2 text-right font-medium">Cap</th>
-                <th className="px-3 py-2 text-right font-medium">Utilisation</th>
-                <th className="px-3 py-2 text-center font-medium">RAG</th>
+                <th className="px-3 py-2 text-left font-medium">Cap utilisation</th>
               </tr>
             </thead>
             <tbody>
-              {capRows.map((r, i) => (
-                <tr key={i} className="border-t border-line">
-                  <td className="px-3 py-2 text-ink">{str(r.partner_code).replace("_", " ")}</td>
-                  <td className="px-3 py-2 text-right tnum text-ink/80">{formatZAR(num(r.total_payout_zar))}</td>
-                  <td className="px-3 py-2 text-right tnum text-ink/60">{formatZAR(num(r.contract_cap_zar))}</td>
-                  <td className="px-3 py-2 text-right tnum font-medium text-ink">{formatPct(num(r.cap_utilisation_pct))}</td>
-                  <td className="px-3 py-2 text-center"><RagDot rag={str(r.rag)} /></td>
-                </tr>
-              ))}
+              {capRows.map((r, i) => {
+                const rag = str(r.rag);
+                const util = num(r.cap_utilisation_pct);
+                const color = rag === "RED" ? CHART.alert : rag === "AMBER" ? CHART.amber : "#227C57";
+                const breached = rag === "RED";
+                return (
+                  <tr key={i} className={`border-t border-line ${breached ? "bg-alert/5" : ""}`}>
+                    <td className="px-3 py-2 font-medium text-ink">
+                      <span className="flex items-center gap-2">
+                        <RagDot rag={rag} />
+                        {str(r.partner_code).replace("_", " ")}
+                        {breached && (
+                          <span className="rounded bg-alert/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-alert">
+                            over cap
+                          </span>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-right tnum text-ink/80">{formatZAR(num(r.total_payout_zar))}</td>
+                    <td className="px-3 py-2 text-right tnum text-ink/60">{formatZAR(num(r.contract_cap_zar))}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-line">
+                          <div className="h-full rounded-full transition-all"
+                            style={{ width: `${Math.min(100, util)}%`, background: color }} />
+                        </div>
+                        <span className="tnum w-12 text-right text-xs font-semibold" style={{ color }}>
+                          {formatPct(util)}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

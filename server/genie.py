@@ -69,8 +69,23 @@ def list_spaces() -> list[dict[str, Any]]:
 
 
 def ask(module: str, question: str, conversation_id: str | None = None) -> dict[str, Any]:
-    """Ask a question of a module's Genie space. Supports follow-ups via
-    conversation_id. Returns text + optional tabular result."""
+    """Ask a question of a module's Genie space. First-turn questions are cached
+    (TTL) so repeated example prompts return instantly; follow-ups (which carry a
+    conversation_id and depend on live conversation state) always hit Genie."""
+    if not conversation_id:
+        from .cache import get_or_set
+
+        def produce() -> dict[str, Any] | None:
+            r = _ask_impl(module, question, None)
+            return r if not r.get("error") else None
+
+        cached = get_or_set(["ask", module, question.strip().lower()], produce)
+        if cached:
+            return cached
+    return _ask_impl(module, question, conversation_id)
+
+
+def _ask_impl(module: str, question: str, conversation_id: str | None = None) -> dict[str, Any]:
     space_id = GENIE_SPACE.get(module)
     if not space_id:
         return {"text": "This Genie space is not configured.", "error": True}
@@ -312,3 +327,21 @@ def run_status(run_id: int) -> dict[str, Any]:
                 "done": life in ("TERMINATED", "SKIPPED", "INTERNAL_ERROR")}
     except Exception as e:  # noqa: BLE001
         return {"life_cycle_state": "ERROR", "result_state": "FAILED", "done": True, "error": str(e)}
+
+
+def read_report_csv(partner: str, period: str) -> str | None:
+    """Read the partner-report CSV the Job wrote to the Volume, returning its
+    text content (the job writes a single coalesced CSV part-file into a dir)."""
+    w = get_workspace_client()
+    CAT = "elexon_app_for_settlement_acc_catalog"
+    base = f"/Volumes/{CAT}/vitality_pulse_gold/staging/reports"
+    folder = f"{base}/{partner.upper().replace(' ', '_')}_{period.replace(' ', '_')}"
+    try:
+        entries = w.files.list_directory_contents(folder)
+        for e in entries:
+            if e.path.endswith(".csv"):
+                resp = w.files.download(e.path)
+                return resp.contents.read().decode("utf-8")
+    except Exception:  # noqa: BLE001
+        return None
+    return None

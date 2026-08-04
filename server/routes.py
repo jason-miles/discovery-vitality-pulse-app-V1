@@ -124,6 +124,18 @@ def workflow_run_status(run_id: int) -> dict[str, Any]:
     return genie_svc.run_status(run_id)
 
 
+@router.get("/workflow/report")
+def workflow_report(partner: str = "Planet Fitness", period: str = "Q3 2026"):
+    """Download the partner-report CSV the Job wrote to the Volume."""
+    from fastapi.responses import Response
+    csv = genie_svc.read_report_csv(partner, period)
+    if not csv:
+        raise HTTPException(status_code=404, detail="Report not found — run the workflow first.")
+    fname = f"{partner.replace(' ', '_')}_{period.replace(' ', '_')}_report.csv"
+    return Response(content=csv, media_type="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
 @router.post("/genie/ask")
 def genie_ask(req: GenieAskRequest) -> dict[str, Any]:
     if req.module not in {"health", "finance", "bridge"}:

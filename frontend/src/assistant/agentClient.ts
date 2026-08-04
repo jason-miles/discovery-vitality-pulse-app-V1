@@ -218,7 +218,9 @@ export class AgentClient {
         const data = await res.json();
         if (data.run_id) {
           runId = `job-run ${data.run_id}`;
-          if (data.run_url) run.artifacts[0] = { ...run.artifacts[0], url: data.run_url };
+          // Point the artifact at a real CSV download of the report the Job wrote.
+          const dl = `/api/workflow/report?partner=${encodeURIComponent(partner)}&period=${encodeURIComponent(period)}`;
+          run.artifacts[0] = { ...run.artifacts[0], url: dl };
         }
       } catch { /* fall back to simulated run */ }
     }

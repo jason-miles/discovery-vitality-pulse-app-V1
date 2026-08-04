@@ -14,6 +14,9 @@ VOL = f"/Volumes/{CAT}/vitality_pulse_gold/staging/reports"
 partner_code = partner.upper().replace(" ", "_")
 df = (spark.table(f"{GOLD}.rewards_liability_monthly")
       .filter(F.col("partner_code") == partner_code)
+      .select("month_start", "partner_code", "partner_category", "event_category",
+              "txn_count", "total_payout_zar", "avg_payout_zar",
+              "contract_cap_zar", "cap_utilisation_pct", "unique_members")
       .orderBy("month_start"))
 
 out = f"{VOL}/{partner_code}_{period.replace(' ', '_')}"
